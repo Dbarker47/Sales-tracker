@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Sales Tracker" />
+  <meta name="theme-color" content="#111827" />
+  <title>Simple Sales Tracker v2</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --card: #ffffff;
+      --ink: #17202a;
+      --muted: #6b7280;
+      --line: #d7dde5;
+      --dark: #111827;
+      --yellow: #f7c948;
+      --green: #15803d;
+      --red: #b91c1c;
+      --blue: #2563eb;
+      --soft-yellow: #fff5cc;
+      --shadow: 0 10px 22px rgba(17, 24, 39, 0.08);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      padding-bottom: 92px;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: linear-gradient(135deg, #111827, #26313f);
+      color: white;
+      padding: calc(14px + env(safe-area-inset-top)) 16px 16px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.22);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 21px;
+      letter-spacing: 0.2px;
+    }
+
+    header p {
+      margin: 4px 0 0;
+      color: #d1d5db;
+      font-size: 13px;
+    }
+
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 14px;
+    }
+
+    .top-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      font-weight: 700;
+    }
+
+    .stat-value {
+      margin-top: 6px;
+      font-size: 26px;
+      font-weight: 850;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 14px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcfe;
+    }
+
+    .panel-title {
+      font-weight: 850;
+      font-size: 16px;
+    }
+
+    .item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid #edf0f4;
+      align-items: center;
+    }
+
+    .item:last-child {
+      border-bottom: none;
+    }
+
+    .item-name {
+      font-weight: 800;
+      font-size: 16px;
+      margin-bottom: 2px;
+    }
+
+    .item-price {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .qty-controls {
+      display: grid;
+      grid-template-columns: 42px 46px 42px;
+      gap: 6px;
+      align-items: center;
+    }
+
+    button {
+      border: none;
+      border-radius: 13px;
+      font-weight: 850;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .qty-btn {
+      height: 42px;
+      font-size: 22px;
+      background: #e8edf4;
+      color: var(--dark);
+    }
+
+    .qty-btn:active,
+    .main-btn:active,
+    .small-btn:active {
+      transform: scale(0.98);
+    }
+
+    .qty-num {
+      text-align: center;
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .actions {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+      background: rgba(244,246,248,.94);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--line);
+      z-index: 20;
+    }
+
+    .action-inner {
+      max-width: 760px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .main-btn {
+      min-height: 54px;
+      font-size: 16px;
+      padding: 10px;
+    }
+
+    .sale-btn {
+      background: var(--yellow);
+      color: #111827;
+    }
+
+    .clear-btn {
+      background: #111827;
+      color: white;
+    }
+
+    .small-btn {
+      padding: 9px 12px;
+      background: #e8edf4;
+      color: #111827;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .danger {
+      background: #fee2e2;
+      color: var(--red);
+    }
+
+    .good {
+      background: #dcfce7;
+      color: var(--green);
+    }
+
+    .blue {
+      background: #dbeafe;
+      color: var(--blue);
+    }
+
+    .summary-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      padding: 11px 14px;
+      border-bottom: 1px solid #edf0f4;
+      align-items: center;
+    }
+
+    .summary-row:last-child {
+      border-bottom: none;
+    }
+
+    .summary-name {
+      font-weight: 750;
+    }
+
+    .summary-mini {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: right;
+    }
+
+    .empty {
+      padding: 18px 14px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .edit-list {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .edit-row {
+      display: grid;
+      grid-template-columns: 1fr 92px 42px;
+      gap: 8px;
+      align-items: center;
+    }
+
+    input {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 9px 10px;
+      font-size: 15px;
+      background: white;
+      color: var(--ink);
+    }
+
+    .hide {
+      display: none;
+    }
+
+    .toast {
+      position: fixed;
+      left: 14px;
+      right: 14px;
+      bottom: 84px;
+      max-width: 730px;
+      margin: 0 auto;
+      background: #111827;
+      color: white;
+      padding: 13px 14px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.22);
+      font-weight: 750;
+      z-index: 40;
+      text-align: center;
+      display: none;
+    }
+
+    .sale-box {
+      background: var(--soft-yellow);
+      border: 1px solid #f3d36a;
+      border-radius: 14px;
+      margin: 12px 14px;
+      padding: 12px;
+    }
+
+    .sale-total {
+      font-size: 30px;
+      font-weight: 950;
+      margin-top: 4px;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+      padding: 0 14px 14px;
+    }
+
+    @media (max-width: 380px) {
+      .top-grid {
+        grid-template-columns: 1fr;
+      }
+      .item {
+        grid-template-columns: 1fr;
+      }
+      .qty-controls {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Sales Tracker v2</h1>
+    <p>Tap quantities, total sale, save the day. No tax.</p>
+  </header>
+
+  <div class="wrap">
+    <div class="top-grid">
+      <div class="stat-card">
+        <div class="stat-label">Current Sale</div>
+        <div class="stat-value" id="currentSale">$0.00</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Day Total</div>
+        <div class="stat-value" id="dayTotal">$0.00</div>
+      </div>
+    </div>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div class="panel-title">iPhone Open Tip</div>
+      </div>
+      <div class="note" style="padding-top:14px;">
+        Best method: email this file to yourself, open the attachment on your iPhone, then use the Share button and choose Safari or Add to Home Screen. If Safari does not show, save it to Files first, then open it from Files.
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Sale Entry</div>
+        </div>
+        <button class="small-btn blue" onclick="toggleEdit()">Edit Items</button>
+      </div>
+      <div id="itemsList"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Today’s Item Totals</div>
+        <button class="small-btn danger" onclick="newSaleDay()">New Sale Day</button>
+      </div>
+      <div id="summaryList"></div>
+    </section>
+
+    <section class="panel hide" id="editPanel">
+      <div class="panel-head">
+        <div class="panel-title">Edit Items & Prices</div>
+        <button class="small-btn good" onclick="saveItems()">Save Items</button>
+      </div>
+      <div class="edit-list" id="editList"></div>
+      <div class="note">
+        Tip: Leave unused items blank. Prices save on this phone only.
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="actions">
+    <div class="action-inner">
+      <button class="main-btn clear-btn" onclick="clearCurrentSale()">Clear Sale</button>
+      <button class="main-btn sale-btn" onclick="completeSale()">Add Sale</button>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "simple_sales_tracker_v1";
+    const defaultItems = [
+      { name: "Item 1", price: 5 },
+      { name: "Item 2", price: 5 },
+      { name: "Item 3", price: 5 },
+      { name: "Item 4", price: 5 },
+      { name: "Item 5", price: 5 },
+      { name: "Item 6", price: 5 },
+      { name: "Item 7", price: 5 },
+      { name: "Item 8", price: 5 },
+      { name: "Item 9", price: 5 },
+      { name: "Item 10", price: 5 },
+      { name: "Item 11", price: 5 },
+      { name: "Item 12", price: 5 },
+      { name: "Item 13", price: 5 },
+      { name: "Item 14", price: 5 },
+      { name: "Item 15", price: 5 },
+      { name: "Item 16", price: 5 },
+      { name: "Item 17", price: 5 },
+      { name: "Item 18", price: 5 },
+      { name: "Item 19", price: 5 },
+      { name: "Item 20", price: 5 }
+    ];
+
+    let state = loadState();
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          return {
+            items: parsed.items || defaultItems,
+            current: parsed.current || {},
+            totals: parsed.totals || {},
+            daySales: parsed.daySales || 0
+          };
+        } catch {
+          return freshState();
+        }
+      }
+      return freshState();
+    }
+
+    function freshState() {
+      return {
+        items: defaultItems,
+        current: {},
+        totals: {},
+        daySales: 0
+      };
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function money(n) {
+      return "$" + Number(n || 0).toFixed(2);
+    }
+
+    function activeItems() {
+      return state.items
+        .map((item, index) => ({ ...item, index }))
+        .filter(item => item.name && item.name.trim() !== "" && Number(item.price) >= 0);
+    }
+
+    function currentSaleTotal() {
+      return activeItems().reduce((sum, item) => {
+        return sum + ((state.current[item.index] || 0) * Number(item.price || 0));
+      }, 0);
+    }
+
+    function dayTotal() {
+      return activeItems().reduce((sum, item) => {
+        const qty = state.totals[item.index] || 0;
+        return sum + (qty * Number(item.price || 0));
+      }, 0);
+    }
+
+    function render() {
+      document.getElementById("currentSale").textContent = money(currentSaleTotal());
+      document.getElementById("dayTotal").textContent = money(dayTotal());
+
+      const itemsList = document.getElementById("itemsList");
+      const items = activeItems();
+
+      if (items.length === 0) {
+        itemsList.innerHTML = '<div class="empty">No items yet. Tap Edit Items to add your list.</div>';
+      } else {
+        itemsList.innerHTML = items.map(item => {
+          const qty = state.current[item.index] || 0;
+          return `
+            <div class="item">
+              <div>
+                <div class="item-name">${escapeHtml(item.name)}</div>
+                <div class="item-price">${money(item.price)} each</div>
+              </div>
+              <div class="qty-controls">
+                <button class="qty-btn" onclick="changeQty(${item.index}, -1)">−</button>
+                <div class="qty-num">${qty}</div>
+                <button class="qty-btn" onclick="changeQty(${item.index}, 1)">+</button>
+              </div>
+            </div>`;
+        }).join("");
+      }
+
+      renderSummary();
+      renderEditList();
+      saveState();
+    }
+
+    function renderSummary() {
+      const summaryList = document.getElementById("summaryList");
+      const rows = activeItems().filter(item => (state.totals[item.index] || 0) > 0);
+
+      if (rows.length === 0) {
+        summaryList.innerHTML = '<div class="empty">No sales added yet today.</div>';
+        return;
+      }
+
+      summaryList.innerHTML = rows.map(item => {
+        const qty = state.totals[item.index] || 0;
+        const total = qty * Number(item.price || 0);
+        return `
+          <div class="summary-row">
+            <div class="summary-name">${escapeHtml(item.name)}</div>
+            <div class="summary-mini">x${qty}</div>
+            <div class="summary-mini">${money(total)}</div>
+          </div>`;
+      }).join("") + `
+        <div class="sale-box">
+          <div class="stat-label">Full Day Total</div>
+          <div class="sale-total">${money(dayTotal())}</div>
+        </div>`;
+    }
+
+    function renderEditList() {
+      const editList = document.getElementById("editList");
+      editList.innerHTML = state.items.map((item, index) => `
+        <div class="edit-row">
+          <input id="name-${index}" value="${escapeAttr(item.name || "")}" placeholder="Item name" />
+          <input id="price-${index}" value="${Number(item.price || 0)}" type="number" min="0" step="0.01" placeholder="Price" />
+          <button class="small-btn danger" onclick="blankItem(${index})">X</button>
+        </div>
+      `).join("");
+    }
+
+    function changeQty(index, amount) {
+      const current = state.current[index] || 0;
+      state.current[index] = Math.max(0, current + amount);
+      render();
+    }
+
+    function clearCurrentSale() {
+      state.current = {};
+      toast("Sale cleared.");
+      render();
+    }
+
+    function completeSale() {
+      const total = currentSaleTotal();
+      if (total <= 0) {
+        toast("No items selected.");
+        return;
+      }
+
+      Object.keys(state.current).forEach(index => {
+        const qty = state.current[index] || 0;
+        if (qty > 0) {
+          state.totals[index] = (state.totals[index] || 0) + qty;
+        }
+      });
+
+      state.current = {};
+      state.daySales += total;
+      toast("Sale added: " + money(total));
+      render();
+    }
+
+    function newSaleDay() {
+      const confirmReset = confirm("Start a new sale day? This clears today's totals on this phone.");
+      if (!confirmReset) return;
+      state.current = {};
+      state.totals = {};
+      state.daySales = 0;
+      toast("New sale day started.");
+      render();
+    }
+
+    function toggleEdit() {
+      document.getElementById("editPanel").classList.toggle("hide");
+      renderEditList();
+      setTimeout(() => {
+        const panel = document.getElementById("editPanel");
+        if (!panel.classList.contains("hide")) panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 50);
+    }
+
+    function saveItems() {
+      state.items = state.items.map((item, index) => {
+        const name = document.getElementById("name-" + index).value.trim();
+        const priceRaw = document.getElementById("price-" + index).value;
+        const price = Math.max(0, Number(priceRaw || 0));
+        return { name, price };
+      });
+      toast("Items saved.");
+      render();
+    }
+
+    function blankItem(index) {
+      document.getElementById("name-" + index).value = "";
+      document.getElementById("price-" + index).value = "0";
+    }
+
+    function toast(msg) {
+      const box = document.getElementById("toast");
+      box.textContent = msg;
+      box.style.display = "block";
+      clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => {
+        box.style.display = "none";
+      }, 1800);
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function escapeAttr(text) {
+      return escapeHtml(text);
+    }
+
+    render();
+  </script>
+</body>
+</html>
